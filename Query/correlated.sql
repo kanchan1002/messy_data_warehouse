@@ -1,5 +1,33 @@
 -- Correlated subqueries in MySQL
+CREATE DATABASE IF NOT EXISTS warehouse_db;
 USE warehouse_db;
+
+SELECT 'Dataset check' AS status,
+       (SELECT COUNT(*) FROM data_1) +
+       (SELECT COUNT(*) FROM data_2) +
+       (SELECT COUNT(*) FROM data_3) AS total_rows;
+
+SELECT 'Run Query/data.sql first if this value is 0.' AS note
+WHERE (SELECT COUNT(*) FROM data_1) +
+      (SELECT COUNT(*) FROM data_2) +
+      (SELECT COUNT(*) FROM data_3) = 0;
+
+CREATE TABLE IF NOT EXISTS data_1 (
+    product_id INT NOT NULL,
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    warehouse VARCHAR(50) NOT NULL,
+    location VARCHAR(50) NOT NULL,
+    quantity INT NULL,
+    price DECIMAL(10, 2) NULL,
+    supplier VARCHAR(50) NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    last_restocked DATE NULL,
+    PRIMARY KEY (product_id)
+);
+
+CREATE TABLE IF NOT EXISTS data_2 LIKE data_1;
+CREATE TABLE IF NOT EXISTS data_3 LIKE data_1;
 
 -- Products whose price is above the average price in their own category.
 SELECT i.product_id, i.product_name, i.category, i.price

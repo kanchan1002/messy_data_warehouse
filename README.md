@@ -49,6 +49,13 @@ Run the combined script from the project directory:
 mysql --local-infile=1 -u root -p < Query/schema.sql
 ```
 
+For MySQL Workbench:
+
+1. Open the SQL script in the editor.
+2. Enable Local Infile in the connection settings if prompted.
+3. Make sure the database connection has access to the project folder.
+4. Run the contents of `Query/schema.sql` after selecting the target schema or letting the script create `warehouse_db`.
+
 Alternatively, run the scripts separately in this order:
 
 ```text

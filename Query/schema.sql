@@ -1,5 +1,6 @@
 -- Combined MySQL schema script: DDL, DML, and DCL
 -- Recommended execution order: definitions, data operations, permissions.
+SET GLOBAL local_infile = 1;
 
 /* ================================
    DDL: database and table definitions
@@ -52,17 +53,20 @@ CREATE TEMPORARY TABLE warehouse_stage (
     last_restocked DATE NULL
 );
 
-LOAD DATA LOCAL INFILE 'Cleaned_Data/warehouse_cleaned_data.csv'
+LOAD DATA LOCAL INFILE 'C:/Users/ANAND HARAK/pma dashboard/KANCHAN DBMS/Cleaned_Data/warehouse_cleaned_data.csv'
 INTO TABLE warehouse_stage
 FIELDS TERMINATED BY ','
 OPTIONALLY ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 LINES
-(product_id, product_name, category, warehouse, location, quantity, price, supplier, status, @last_restocked)
-SET last_restocked = COALESCE(
-    STR_TO_DATE(NULLIF(TRIM(@last_restocked), ''), '%Y-%m-%d'),
-    STR_TO_DATE(NULLIF(TRIM(@last_restocked), ''), '%d/%m/%Y')
-);
+(product_id, product_name, category, warehouse, location, @quantity, @price, supplier, status, @last_restocked)
+SET
+    quantity = NULLIF(TRIM(@quantity), ''),
+    price = NULLIF(TRIM(@price), ''),
+    last_restocked = COALESCE(
+        STR_TO_DATE(NULLIF(TRIM(@last_restocked), ''), '%Y-%m-%d'),
+        STR_TO_DATE(NULLIF(TRIM(@last_restocked), ''), '%d/%m/%Y')
+    );
 
 TRUNCATE TABLE data_1;
 TRUNCATE TABLE data_2;
@@ -128,20 +132,20 @@ FROM (
    DCL: roles, users, and privileges
    Execute this section with an administrative account.
    ================================ */
-CREATE ROLE IF NOT EXISTS 'warehouse_readonly';
-CREATE ROLE IF NOT EXISTS 'warehouse_operator';
+CREATE ROLE IF NOT EXISTS warehouse_readonly;
+CREATE ROLE IF NOT EXISTS warehouse_operator;
 
-GRANT SELECT ON warehouse_db.* TO 'warehouse_readonly';
-GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE ON warehouse_db.* TO 'warehouse_operator';
+GRANT SELECT ON warehouse_db.* TO warehouse_readonly;
+GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE ON warehouse_db.* TO warehouse_operator;
 
 -- Replace these example passwords before production use.
 CREATE USER IF NOT EXISTS 'warehouse_reader'@'localhost' IDENTIFIED BY 'ChangeThisReaderPassword!';
 CREATE USER IF NOT EXISTS 'warehouse_operator'@'localhost' IDENTIFIED BY 'ChangeThisOperatorPassword!';
 
-GRANT 'warehouse_readonly' TO 'warehouse_reader'@'localhost';
-GRANT 'warehouse_operator' TO 'warehouse_operator'@'localhost';
-SET DEFAULT ROLE 'warehouse_readonly' TO 'warehouse_reader'@'localhost';
-SET DEFAULT ROLE 'warehouse_operator' TO 'warehouse_operator'@'localhost';
+GRANT warehouse_readonly TO 'warehouse_reader'@'localhost';
+GRANT warehouse_operator TO 'warehouse_operator'@'localhost';
+SET DEFAULT ROLE warehouse_readonly TO 'warehouse_reader'@'localhost';
+SET DEFAULT ROLE warehouse_operator TO 'warehouse_operator'@'localhost';
 
 SHOW GRANTS FOR 'warehouse_reader'@'localhost';
 -- REVOKE DELETE ON warehouse_db.* FROM 'warehouse_operator';
